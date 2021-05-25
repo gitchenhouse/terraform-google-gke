@@ -151,6 +151,8 @@ resource "google_container_node_pool" "node_pool" {
 
     labels = {
       all-pools-example = "true"
+      application = "enable"
+      database = "enable"
     }
 
     # Add a public tag to the instances. See the network access tier table for full details:
@@ -243,6 +245,22 @@ resource "null_resource" "configure_kubectl" {
   depends_on = [google_container_node_pool.node_pool]
 }
 
+resource "google_filestore_instance" "instance" {
+  name = "nfs-storage"
+  zone = "asia-east2-a"
+  tier = "STANDARD"
+
+  file_shares {
+    capacity_gb = 1024
+    name        = "volumes"
+  }
+
+  networks {
+    network = module.vpc_network.network
+    modes   = ["MODE_IPV4"]
+  }
+}
+
 resource "kubernetes_cluster_role_binding" "user" {
   metadata {
     name = "admin-user"
@@ -272,14 +290,6 @@ resource "kubernetes_cluster_role_binding" "user" {
 # A chart repository is a location where packaged charts can be stored and shared. Define Bitnami Helm repository location,
 # so Helm can install the nginx chart.
 # ---------------------------------------------------------------------------------------------------------------------
-
-resource "helm_release" "nginx" {
-  depends_on = [google_container_node_pool.node_pool]
-
-  repository = "https://charts.bitnami.com/bitnami"
-  name       = "nginx"
-  chart      = "nginx"
-}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # WORKAROUNDS
