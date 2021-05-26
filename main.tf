@@ -211,7 +211,6 @@ resource "random_string" "suffix" {
 
 module "vpc_network" {
   source = "github.com/gruntwork-io/terraform-google-network.git//modules/vpc-network?ref=v0.7.1"
-
   name_prefix = "${var.cluster_name}-network-${random_string.suffix.result}"
   project     = var.project
   region      = var.region
@@ -256,7 +255,7 @@ resource "google_filestore_instance" "instance" {
   }
 
   networks {
-    network = module.vpc_network.network
+    network = "cluster-network-k03y-network"
     modes   = ["MODE_IPV4"]
   }
 }
